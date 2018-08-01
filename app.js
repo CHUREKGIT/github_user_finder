@@ -1,31 +1,39 @@
-//Init Github
-const github = new GitHub;
+// Init storage
+const storage = new Storage();
 
-//Init uo
-const ui = new UI;
+//Get stored location data
+const weatherLocation = storage.getLocationData();
 
-//search input 
-const searchUser = document.getElementById('searchUser');
+//Init Weather Object 
 
-//Search input event listener
-searchUser.addEventListener('keyup', (e)=>{
-    //get text input
-    const userText =e.target.value;
+const weather = new Weather(weatherLocation.city, weatherLocation.countryCode);
 
-    if(userText !== ''){
-        //make http call
-        github.getUser(userText)
-        .then(data => {
-            if(data.profile.message === "Not Found"){
-                ui.showAlert('Cant find this user', 'alert alert-danger');    
-            }else{
-                //Show profile
-                
-                ui.showProfile(data.profile);
-                ui.showRepos(data.repos)
-            }
-        })
-    }else {
-        ui.clearProfile();
-    }
+//Init UI
+const ui = new UI();
+
+//Get Weather for DOM LOAD
+document.addEventListener('DOMContentLoaded', getWeather)
+
+//Change location element
+document.getElementById('w-change-btn').addEventListener('click', function(e){
+
+    const city = document.getElementById('city').value;
+    const countryCode = document.getElementById('state').value;
+
+    weather.changeLocation(city, countryCode);
+
+    //Get Weather again
+    getWeather ()
+    
+    //Close Model
+    $('#locModal').modal('hide');
 })
+
+
+function getWeather (){
+    weather.getWeather()
+        .then(results => {
+            ui.paint(results)
+        })
+        .catch(err => console.log(err));
+}
